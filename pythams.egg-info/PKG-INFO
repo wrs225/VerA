@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: pythams
+Version: 0.1.0
+Summary: Tools for defining mixed-signal systems in python
+Author: Your Name
+Author-email: wrs225@stanford.edu
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
