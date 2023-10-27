@@ -1,0 +1,19 @@
+[project]
+name = "PythAMS"
+version = "0.0.1"
+authors = [
+  { name="Will S"},
+  { name="Sara A"}
+]
+description = "A Python package for synthesizing and simulating fixed-point models of continuous systems."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/wrs225/PythAMS"
+"Bug Tracker" = "https://github.com/wrs225/PythAMS/issues"

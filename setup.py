@@ -5,7 +5,7 @@ setup(
     version='0.0.1',
     author='Will S, Sara A',
     author_email='wrs225@stanford.edu',
-    description='Tools for defining mixed-signal systems in python',
+    description='A Python package for synthesizing and simulating fixed-point models of continuous systems.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     packages=find_packages(),
