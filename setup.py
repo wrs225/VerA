@@ -6,6 +6,7 @@ setup(
     author='Will S, Sara A',
     author_email='wrs225@stanford.edu',
     description='Tools for defining mixed-signal systems in python',
+    long_description='Tools for defining mixed-signal systems in python',
     packages=find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
