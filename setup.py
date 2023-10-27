@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='pythams',
-    version='0.1.0',
-    author='Your Name',
+    version='0.0.1',
+    author='Will S, Sara A',
     author_email='wrs225@stanford.edu',
     description='Tools for defining mixed-signal systems in python',
     packages=find_packages(),
