@@ -14,15 +14,15 @@ import vco as vco
 
 def validate_model(blk,timestep,figname):
     print(blk)
-    xi,vi = 1.0,0.0
+    xi,vi = 3.3,0.0
     xs = []
     vs = []
     ts = []
     cycles_per_sec = round(1/timestep)
-    max_cycles = 10000*cycles_per_sec
+    max_cycles = 10*cycles_per_sec
     for t in range(max_cycles):
     
-        values = blocklib.execute_block(blk,{"w":0.8, "x": xi, "v": vi})
+        values = blocklib.execute_block(blk,{"w":3.3, "x": xi, "v": vi})
         ts.append(t*timestep)
         xs.append(xi)
         vs.append(vi)
@@ -65,23 +65,21 @@ def validate_pymtl_model(rtlblk,timestep,figname):
 
 
 block = vco.generate_block()
-ival_reg = intervallib.compute_intervals_for_block(block,rel_prec=0.01)
+ival_reg = intervallib.compute_intervals_for_block(block,rel_prec=0.000001)
 print("------ Real-valued AMS Block -----")
 print(block)
 print("\n")
 input("press any key to run simulation..")
-validate_model(block, 1e-2, "orig_dynamics.png")
+validate_model(block, 1e-4, "orig_dynamics.png")
 
 print(block.relations())
-
-raise(Exception)
 
 fp_block = fxplib.to_fixed_point(ival_reg, block)
 print("------ Fixed Point AMS Block -----")
 print(fp_block)
 print("\n")
 input("press any key to run simulation..")
-validate_model(fp_block, timestep, "fp_dynamics.png")
+validate_model(fp_block, 1e-4, "fp_dynamics.png")
 
 print(fp_block.vars())
 for i in fp_block.relations():
@@ -95,7 +93,7 @@ print("------ Integer AMS Block -----")
 print(int_block)
 print("\n")
 input("press any key to run simulation..")
-validate_model(int_block, timestep, "int_dynamics.png")
+validate_model(int_block, 1e-4, "int_dynamics.png")
 
 for i in int_block.relations():
     print(i.pretty_print())

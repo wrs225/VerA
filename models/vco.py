@@ -5,7 +5,10 @@ import pythams.core.fixedpoint as fxplib
 import pythams.core.integer as intlib 
 import pythams.core.rtl as rtllib 
 
-def generate_block(input_voltage = 3.3, rel_prec = 0.01, timestep = 1e-2):
+def generate_block(input_voltage = 3.3, rel_prec = 0.0000001, timestep = 1e-4):
+    
+    scf = 40
+    
     vco = blocklib.AMSBlock("vco")
     #w = vco.decl_input(Real("w"))
     #out = vco.decl_output(Real("out"))
@@ -14,8 +17,8 @@ def generate_block(input_voltage = 3.3, rel_prec = 0.01, timestep = 1e-2):
     d    = vco.decl_param("damping_resistance",Constant(0.0036))
 
     w = vco.decl_var("w", kind=blocklib.VarKind.Input, type=RealType(0,3.3,prec=rel_prec)) #total kludge to get the product lower above 0.00
-    x = vco.decl_var("x", kind=blocklib.VarKind.StateVar, type=RealType(lower=-3.3,upper=3.3,prec=rel_prec))
-    v = vco.decl_var("v", kind=blocklib.VarKind.StateVar, type=RealType(lower=-3.3,upper=3.3,prec=rel_prec))
+    x = vco.decl_var("x", kind=blocklib.VarKind.StateVar, type=RealType(lower=-3.3*scf,upper=3.3*scf,prec=rel_prec))
+    v = vco.decl_var("v", kind=blocklib.VarKind.StateVar, type=RealType(lower=-3.3*scf,upper=3.3*scf,prec=rel_prec))
 
     out = vco.decl_var("out", kind=blocklib.VarKind.Output, type=x.type)
     dvdt = vco.decl_var("dvdt", kind=blocklib.VarKind.Transient,  \
@@ -28,7 +31,7 @@ def generate_block(input_voltage = 3.3, rel_prec = 0.01, timestep = 1e-2):
     vco.decl_relation(expr)
     vco.decl_relation(VarAssign(dxdt, v))
     vco.decl_relation(VarAssign(out, x))
-    vco.decl_relation(Integrate(v, dvdt - d*v, timestep=timestep))
+    vco.decl_relation(Integrate(v, dvdt, timestep=timestep))
     vco.decl_relation(Integrate(x, dxdt, timestep=timestep))
     
     return vco

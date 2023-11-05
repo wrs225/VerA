@@ -111,8 +111,7 @@ class FixedPointType(VarType):
         else:
             nvalue = int(round(float(value)/self.scale))*self.scale
 
-        fpn = FixedPoint(nvalue, m=self.m, n=self.n, signed=self.signed,  
-            overflow="clamp", overflow_alert='warning')
+        fpn = FixedPoint(nvalue, m=self.m, n=self.n, signed=self.signed)
         self.typecheck_value(fpn)
         if abs(float(fpn) - value) > self.scale:
             print("[WARN] precision requirement violated: orig-value=%f, fp-value=%f, scale=%f" % (value,float(fpn),self.scale))
@@ -225,7 +224,7 @@ class FPTruncInt(FPOp):
 
         value = float(self.expr.execute(args))
 
-        new_value = FixedPoint( value, n=self.type.n , m=self.type.m, signed=self.type.signed, overflow='clamp', overflow_alert='warning')
+        new_value = FixedPoint( value, n=self.type.n , m=self.type.m, signed=self.type.signed)
 
         self.type.typecheck_value(new_value)
         #If we are clamping the value here, I believe we should not care because the difference should be large.
@@ -288,7 +287,7 @@ class FPToUnsigned(FPOp): #FP Operation,
     def execute(self,args):
         value = float(self.expr.execute(args))
 
-        new_value = FixedPoint(value,n=self.expr.type.n, m=self.expr.type.m - 1, signed=False, rounding='in')
+        new_value = FixedPoint(value,n=self.expr.type.n, m=self.expr.type.m - 1, signed=False)
         
         self.type.typecheck_value(new_value)
         if abs(self.expr.type.to_real(value) - self.expr.type.to_real(new_value)) > 1e-6:
@@ -321,7 +320,7 @@ class FpQuotient(Expression):
     def execute(self, args):
         result_float = float(self.lhs.execute(args)) / float(self.rhs.execute(args)) 
 
-        result = FixedPoint(result_float, m=self.lhs.type.m + self.rhs.type.n + self.rhs.type.m + bool(self.rhs.type.signed or self.lhs.type.signed), n=self.lhs.type.n, signed=self.type.signed, overflow_alert='error')
+        result = FixedPoint(result_float, m=self.lhs.type.m + self.rhs.type.n + self.rhs.type.m + bool(self.rhs.type.signed or self.lhs.type.signed), n=self.lhs.type.n, signed=self.type.signed)
 
         tc_result = self.type.typecast_value(result)
         self.type.typecheck_value(tc_result)

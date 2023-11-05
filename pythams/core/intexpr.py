@@ -45,6 +45,8 @@ class IntType(VarType):
         unsc = round(v/self.scale)
         v_tc = min(self.upper,max(self.lower,unsc))
         if(v < self.scale):
+            print(self.nbits)
+            print(self.scale)
             print("[WARN] scale > value, possible truncation by precision!")
         if(abs(self.to_real(v_tc) - v) > self.scale):
             print("[WARN] from_real %f => %f" % (v, self.to_real(v_tc)))
