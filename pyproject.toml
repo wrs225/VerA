@@ -1,9 +1,9 @@
 [project]
 name = "PythAMS"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Will S"},
-  { name="Sara A"}
+  {  name="Sara A"}
 ]
 description = "A Python package for synthesizing and simulating fixed-point models of continuous systems."
 readme = "README.md"
