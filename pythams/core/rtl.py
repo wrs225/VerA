@@ -211,7 +211,7 @@ class RTLBlock:
         if(isinstance(relation, Constant)):
             const_wire = relation.op_name + "_" + str(next(self.namecounter))
             self.wires[const_wire] = self.m.Wire(const_wire, relation.type.nbits)
-            self.wires[const_wire].assign(self.scale_value_to_int(relation.value, relation.type))
+            self.wires[const_wire].assign(Int(self.scale_value_to_int(relation.value, relation.type),width=relation.type.nbits))
             return self.wires[const_wire], relation.type.nbits
         elif(isinstance(relation, Var)):
             if(relation.name in self.regs.keys()):
@@ -369,9 +369,9 @@ class RTLBlock:
     
         
         
-    def generate_pymtl_wrapper(self):
+    def generate_pymtl_wrapper(self,custompath = "./"):
         
-        codeobj = compile(self.generate_construct_string(),"<String>", "exec" )
+        codeobj = compile(self.generate_construct_string(custompath + self.name + ".v"),"<String>", "exec" )
 
         code = [c for c in codeobj.co_consts if isinstance(c, CodeType)][0]
 
@@ -420,19 +420,22 @@ class RTLBlock:
         return returndict
 
 
-    def generate_construct_string(self):
+    def generate_construct_string(self, path_and_name):
         final_string = "def construct(self"
         
         for p in self.block.params():
             final_string = final_string + ', ' + p.name + " = " + str(self.scale_value_to_int(p.constant.value, p.constant.type))
         
         final_string = final_string + ' ):\n\n'
+
+        final_string = final_string + '    self.set_metadata( VerilogPlaceholderPass.src_file, \'{}\' )\n'.format(path_and_name)
         for v in self.block.vars():
             if v.kind == VarKind.Input:
                 final_string = final_string + '    self.' + v.name + ' = InPort(mk_bits( {} ))\n'.format(v.type.nbits)
             elif v.kind == VarKind.Output:
                 final_string = final_string + '    self.' + v.name + ' = OutPort(mk_bits( {} ))\n'.format(v.type.nbits)
 
-        final_string = final_string + '    self.' + 'sys_clk' + ' = InPort(mk_bits( {} ))\n'.format(1)
-
+        if(isinstance(self.block, FSMAMSBlock)):
+            final_string = final_string + '    self.' + 'sys_clk' + ' = InPort(mk_bits( {} ))\n'.format(1)
+        print(final_string)
         return final_string

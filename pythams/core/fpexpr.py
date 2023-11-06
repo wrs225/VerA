@@ -111,7 +111,7 @@ class FixedPointType(VarType):
         else:
             nvalue = int(round(float(value)/self.scale))*self.scale
 
-        fpn = FixedPoint(nvalue, m=self.m, n=self.n, signed=self.signed)
+        fpn = FixedPoint(nvalue, m=self.m, n=self.n, signed=self.signed, mismatch_alert='ignore')
         self.typecheck_value(fpn)
         if abs(float(fpn) - value) > self.scale:
             print("[WARN] precision requirement violated: orig-value=%f, fp-value=%f, scale=%f" % (value,float(fpn),self.scale))
@@ -141,10 +141,10 @@ class FPTruncFrac(FPOp):
                             signed=fpt.signed)
  
     def execute(self,args):
-        value = FixedPoint(self.expr.execute(args))
+        value = FixedPoint(self.expr.execute(args), mismatch_alert='ignore')
         new_bitvec= bin(value.bits >> self.nbits)
 
-        new_value = FixedPoint(new_bitvec, n=self.expr.type.n - self.nbits, m=self.expr.type.m, signed=self.expr.type.signed)
+        new_value = FixedPoint(new_bitvec, n=self.expr.type.n - self.nbits, m=self.expr.type.m, signed=self.expr.type.signed, mismatch_alert='ignore')
         
         self.type.typecheck_value(new_value)
         if abs(self.expr.type.to_real(value) - self.type.to_real(new_value)) > self.type.scale:
@@ -173,10 +173,10 @@ class FPExtendFrac(FPOp):
 
  
     def execute(self,args):
-        value = FixedPoint(self.expr.execute(args))
+        value = FixedPoint(self.expr.execute(args), mismatch_alert='ignore')
         new_bitvec=bin(value.bits << self.nbits)
 
-        new_value = FixedPoint(new_bitvec, n=self.expr.type.n + self.nbits, m=self.expr.type.m, signed=self.expr.type.signed)
+        new_value = FixedPoint(new_bitvec, n=self.expr.type.n + self.nbits, m=self.expr.type.m, signed=self.expr.type.signed, mismatch_alert='ignore')
         self.type.typecheck_value(new_value)
         if abs(self.expr.type.to_real(value) - self.expr.type.to_real(new_value)) > 1e-6:
             raise Exception("Fractional extend produced incorrect value")
@@ -202,7 +202,7 @@ class FPExtendInt(FPOp):
     #Added by will
     def execute(self, args):
         value = float(self.expr.execute(args))
-        new_value = FixedPoint( value, n=self.expr.type.n , m=self.expr.type.m + self.nbits, signed=self.expr.type.signed)
+        new_value = FixedPoint( value, n=self.expr.type.n , m=self.expr.type.m + self.nbits, signed=self.expr.type.signed, mismatch_alert='ignore')
         self.type.typecheck_value(new_value)
         if abs(self.expr.type.to_real(value) - self.expr.type.to_real(new_value)) > 1e-6:
             raise Exception("Fractional extend produced incorrect value")
@@ -224,7 +224,7 @@ class FPTruncInt(FPOp):
 
         value = float(self.expr.execute(args))
 
-        new_value = FixedPoint( value, n=self.type.n , m=self.type.m, signed=self.type.signed)
+        new_value = FixedPoint( value, n=self.type.n , m=self.type.m, signed=self.type.signed, mismatch_alert='ignore')
 
         self.type.typecheck_value(new_value)
         #If we are clamping the value here, I believe we should not care because the difference should be large.
@@ -257,7 +257,7 @@ class FPToSigned(FPOp):
  
     def execute(self,args):
         value = self.expr.execute(args)
-        new_value = FixedPoint(float(value),n=self.expr.type.n , m=self.expr.type.m + 1, signed=True)
+        new_value = FixedPoint(float(value),n=self.expr.type.n , m=self.expr.type.m + 1, signed=True, mismatch_alert='ignore')
         self.type.typecheck_value(new_value)
         if abs(self.expr.type.to_real(value) - self.expr.type.to_real(new_value)) > 1e-6:
             raise Exception("Sign extend produced incorrect value")
@@ -287,7 +287,7 @@ class FPToUnsigned(FPOp): #FP Operation,
     def execute(self,args):
         value = float(self.expr.execute(args))
 
-        new_value = FixedPoint(value,n=self.expr.type.n, m=self.expr.type.m - 1, signed=False)
+        new_value = FixedPoint(value,n=self.expr.type.n, m=self.expr.type.m - 1, signed=False, mismatch_alert='ignore')
         
         self.type.typecheck_value(new_value)
         if abs(self.expr.type.to_real(value) - self.expr.type.to_real(new_value)) > 1e-6:
@@ -320,7 +320,7 @@ class FpQuotient(Expression):
     def execute(self, args):
         result_float = float(self.lhs.execute(args)) / float(self.rhs.execute(args)) 
 
-        result = FixedPoint(result_float, m=self.lhs.type.m + self.rhs.type.n + self.rhs.type.m + bool(self.rhs.type.signed or self.lhs.type.signed), n=self.lhs.type.n, signed=self.type.signed)
+        result = FixedPoint(result_float, m=self.lhs.type.m + self.rhs.type.n + self.rhs.type.m + bool(self.rhs.type.signed or self.lhs.type.signed), n=self.lhs.type.n, signed=self.type.signed, mismatch_alert='ignore')
 
         tc_result = self.type.typecast_value(result)
         self.type.typecheck_value(tc_result)
@@ -349,7 +349,7 @@ class FpReciprocal(Expression):
         fxp_expr = self.expr.execute(args)
         result_float = (1 / float(fxp_expr)) #1/fp_expr
 
-        result = FixedPoint(result_float, m = self.expr.type.n + int(self.expr.type.signed), n = self.expr.type.m, signed = self.expr.type.signed)
+        result = FixedPoint(result_float, m = self.expr.type.n + int(self.expr.type.signed), n = self.expr.type.m, signed = self.expr.type.signed, mismatch_alert='ignore')
 
         tc_result = self.type.typecast_value(result)
         self.type.typecheck_value(tc_result)
@@ -378,7 +378,7 @@ class FPTruncL(FPOp):
     
     def execute(self,args):
         value = self.expr.execute(args)
-        rettype = FixedPoint(float(value),n=self.type.n, m=self.type.m, signed=self.type.signed)
+        rettype = FixedPoint(float(value),n=self.type.n, m=self.type.m, signed=self.type.signed, mismatch_alert='ignore')
 
         return rettype
     
