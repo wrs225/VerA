@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pythams',
-    version='0.0.2',
+    version='0.0.3',
     author='Will S, Sara A',
     author_email='wrs225@stanford.edu',
     description='A Python package for synthesizing and simulating fixed-point models of continuous systems.',
