@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import math
 from fixedpoint import FixedPoint, FixedPointOverflowError
 import sympy as sym
+import copy
 
 @dataclass(frozen=True)
 class FixedPointType(VarType):
@@ -251,6 +252,8 @@ class FPToSigned(FPOp):
     def type(self):
         fpt = self.expr.type
         if not fpt.signed:
+            
+            fpt = copy.deepcopy(self.expr.type)
             return FixedPointType.from_integer_scale(integer=fpt.integer,log_scale=fpt.log_scale,signed=True)
         else:
             return fpt

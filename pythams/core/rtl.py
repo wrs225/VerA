@@ -15,7 +15,7 @@ from .fsmblock import *
 
 class RTLBlock:
 
-    def __init__(self, block, initconditions, name_override = None):
+    def __init__(self, block, initconditions, name_override = None,debug_real = False, special_options = {'reset_state_on_change':[]}):
 
         self.block = block
 
@@ -63,10 +63,111 @@ class RTLBlock:
             elif v.kind == VarKind.StateVar:
                 self.regs[v.name] = self.m.Reg(v.name, v.type.nbits)
 
+        if(debug_real):
+            for v in block.vars():
+                real_name = v.name + "_real"
+                self.wires[real_name] = self.m.Wire(real_name, 64)
+
+
+                if v.kind == VarKind.Input:
+                    if v.type.signed:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11))
+                            signal = Cat(self.inputs[v.name][-1], imm_exp_wire, self.inputs[v.name][:v.type.nbits], Int(0,52 - v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11) + v.type.nbits - 52)
+                            signal = Cat(self.inputs[v.name][-1], imm_exp_wire, self.inputs[v.name][:51])                    
+                    else:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11))
+                            signal = Cat(Int(0,1), imm_exp_wire, self.inputs[v.name][:v.type.nbits], Int(0,52 - v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11) + v.type.nbits - 52)
+                            signal = Cat(Int(0,1), imm_exp_wire, self.inputs[v.name][:51])                   
+                    self.wires[real_name].assign(signal)
+                elif v.kind == VarKind.Output:
+                    if v.type.signed:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11))
+                            signal = Cat(self.outputs[v.name][-1], imm_exp_wire, self.outputs[v.name][:v.type.nbits], Int(0,52- v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11) + v.type.nbits - 52)
+                            signal = Cat(self.outputs[v.name][-1], imm_exp_wire, self.outputs[v.name][:51])                    
+                    else:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11))
+                            signal = Cat(Int(0,1), imm_exp_wire, self.outputs[v.name][:v.type.nbits], Int(0,52 - v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1)+ 1023,11) + v.type.nbits - 52)
+                            signal = Cat(Int(0,1), imm_exp_wire, self.outputs[v.name][:51])   
+                    self.wires[real_name].assign(signal)
+                elif v.kind == VarKind.Transient:
+                    if v.type.signed:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11))
+                            signal = Cat(self.wires[v.name][-1], imm_exp_wire, self.wires[v.name][:v.type.nbits], Int(0,52 - v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11) + v.type.nbits - 52)
+                            signal = Cat(self.wires[v.name][-1], imm_exp_wire, self.wires[v.name][:51])                    
+                    else:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11))
+                            signal = Cat(Int(0,1), imm_exp_wire, self.wires[v.name][:v.type.nbits], Int(0,52 - v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11) + v.type.nbits - 52)
+                            signal = Cat(Int(0,1), imm_exp_wire, self.wires[v.name][:51])   
+                    self.wires[real_name].assign(signal)
+                elif v.kind == VarKind.StateVar:
+                    if v.type.signed:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11))
+                            signal = Cat(self.regs[v.name][-1], imm_exp_wire, self.regs[v.name][:v.type.nbits], Int(0,52 - v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11) + v.type.nbits - 52)
+                            signal = Cat(self.regs[v.name][-1], imm_exp_wire, self.regs[v.name][:51])                    
+                    else:
+                        if v.type.nbits < 52:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11))
+                            signal = Cat(Int(0,1), imm_exp_wire, self.regs[v.name][:v.type.nbits ], Int(0,52 - v.type.nbits))
+                        else:
+                            imm_exp_wire = self.m.Wire('imm_exp_wire_{}'.format(str(next(self.namecounter))), 11)
+                            imm_exp_wire.assign(Int(round(math.log2(v.type.scale) + 1) + 1023,11) + v.type.nbits - 52)
+                            signal = Cat(Int(0,1), imm_exp_wire, self.regs[v.name][:51])   
+                    self.wires[real_name].assign(signal)
+
+
         for p in block.params():
             self.params[p.name] = self.m.Parameter(p.name, self.scale_value_to_int(p.constant.value, p.constant.type) )
 
+        for signal in special_options['reset_state_on_change']:
+
+            self.regs['prev_{}'.format(signal)] = self.m.Reg('prev_{}'.format(signal),block.get_var(signal).type.nbits)
+            self.seq.If(self.inputs['reset'])(
+                self.regs['prev_{}'.format(signal)](0)
+            ).Else(
+                self.regs['prev_{}'.format(signal)](self.get_signal_reference(signal))
+            )
         
+        or_expr = Int(0,1)
+
+        for signal in special_options['reset_state_on_change']:
+            or_expr = Or(or_expr, NotEq(self.regs['prev_{}'.format(signal)] - self.get_signal_reference(signal),Int(0)) )
+            
 
         if( isinstance(block, AMSBlock)):
             for r in block.relations():
@@ -76,8 +177,8 @@ class RTLBlock:
                     else:
                         expression = self.regs[r.lhs.name](self.traverse_expr_tree(r.rhs)[0])
 
-                    self.seq.If(self.inputs['reset'])(
-                        self.regs[r.lhs.name](self.scale_value_to_int(self.initconditions[r.lhs.name], r.rhs.type)) 
+                    self.seq.If(Or(self.inputs['reset'], or_expr))(
+                        self.regs[r.lhs.name](Int(self.scale_value_to_int(self.initconditions[r.lhs.name], r.rhs.type),r.rhs.type.nbits)) 
                     ).Else(
                         expression
                     )
@@ -129,6 +230,18 @@ class RTLBlock:
                     state_defined.append(state_name)
 
                     fsm.goto_from(state_mapping[state_name], state_mapping[edge.dest_node.name], cond=self.extract_condition(edge.cond, state_mapping[state_name]))
+
+    def get_signal_reference(self, signal_name):
+        if signal_name in self.wires.keys():
+            return self.wires[signal_name]
+        elif signal_name in self.inputs.keys():
+            return self.inputs[signal_name]
+        elif signal_name in self.outputs.keys():
+            return self.outputs[signal_name] 
+        elif signal_name in self.regs.keys():
+            return self.outputs[signal_name]
+        else:
+            raise LookupError("Could not find declaration of wire in module!")
 
     def extract_condition(self, condition, state_index):
         if( isinstance(condition, NoCondition)):

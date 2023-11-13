@@ -37,14 +37,19 @@ class IntervalPrecRegistery:
         return self.info[ident]
 
     def decl_sym_info(self,ident,interval_expr, precision_expr, relative_precision=0.0001):
-
+        
         upper = interval_expr.nominal_value + interval_expr.std_dev
         lower = interval_expr.nominal_value - interval_expr.std_dev
         fwd_precision = precision_expr.std_dev
         
+        
         if(upper - lower == 0.0):
-            targ_precision = abs(upper)  * relative_precision
+            print(upper)
+            print(lower)
+            print("in_thing")
+            targ_precision = relative_precision
         else:
+            print(upper-lower)
             targ_precision = (upper-lower)*relative_precision
 
         """ This part should be fine to comment out, right?

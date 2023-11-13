@@ -189,7 +189,7 @@ def fixed_point_expr(reg,expr):
         recip = FpReciprocal(exprr)
         assert exprr.type.log_scale <= 0
         recip.type = FixedPointType.from_integer_scale(integer = exprr.type.fractional + int(exprr.type.signed), \
-                                                       log_scale = exprr.type.integer, \
+                                                       log_scale = -exprr.type.integer, \
                                                         signed = exprr.type.signed )
 
         typematch = type_match(recip, expr_type)
