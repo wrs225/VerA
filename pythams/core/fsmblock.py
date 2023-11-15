@@ -7,6 +7,7 @@ from .integer    import *
 from .intervals  import *
 from .intexpr import *
 
+
 class FSMAMSBlock:
 
     #In reality, evaluate_dt_division should be a factor of 2**n, othewise it becomes hairy to divide the clock.
@@ -91,7 +92,7 @@ class FSMAMSBlock:
         self.state_vars = execute_block(self.state.block, self.state_vars)
 
         for edge in self.edges[self.state.name]:
-
+            #print(self._conditionTrue(edge))
             if( self._conditionTrue(edge.cond) ):
                 
                 self.state = edge.dest_node
@@ -122,7 +123,7 @@ class FSMAMSBlock:
                             shift = round(math.log2(stored_var.type.scale)) - round(math.log2(v.type.scale))
                             print(shift)
                             if(shift > 0):
-                                self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = IntType(nbits = stored_var.type.nbits + shift, scale = v.type.scale, signed = stored_var.type.signed or v.type.signed))
+                                self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = intlib.IntType(nbits = stored_var.type.nbits + shift, scale = v.type.scale, signed = stored_var.type.signed or v.type.signed))
                                 stored_var = self._vars[v.name]
                             else:
                                 raise Exception("This should never happen")
@@ -132,7 +133,7 @@ class FSMAMSBlock:
 
 
                         if(stored_var.type.nbits < v.type.nbits ):
-                            self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = IntType(nbits = v.type.nbits, scale = stored_var.type.scale, signed = stored_var.type.signed or v.type.signed))
+                            self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = intlib.IntType(nbits = v.type.nbits, scale = stored_var.type.scale, signed = stored_var.type.signed or v.type.signed))
                         else:
                             print("datatypes match")
 
@@ -150,8 +151,7 @@ class FSMAMSBlock:
                         print('assigned new type')
                         node.block._vars[name] = deepcopy(fsm_v)
         
-        print("BLOCK_VAR")
-        print(self._vars['o'])
+ 
 
         for name, node in self.nodes.items():
             print('==========NODE {}=========='.format(name))
@@ -169,24 +169,12 @@ class FSMAMSBlock:
                     print(prev_type)
                     
                     if(not isinstance(rel.rhs, Var) ):
-                        print("====Top====")
-                        print(node.block._relations[i].lhs.type)
-                        print(node.block._relations[i].rhs.type)
-                        print(node.block._relations[i].pretty_print())
-                        print(node.block._relations[i])
+
 
                         self._change_relation_reference_datatypes(node.block._relations[i].rhs)
-                        print(node.block._relations[i].lhs.type)
-                        print(node.block._relations[i].rhs.type)
-                        print(node.block._relations[i].pretty_print())
-                        print(node.block._relations[i])
-                        self._change_relation_reference_datatypes(node.block._relations[i].rhs)
-                        print('entering recursion for ')
-                        print(node.block._relations[i])
-                        print(node.block._relations[i].lhs.type)
-                        print(node.block._relations[i].lhs.name)
 
-                        print("top^")
+                        self._change_relation_reference_datatypes(node.block._relations[i].rhs)
+
                     else:
                         print(node.block._relations[i])
                         node.block._relations[i].lhs.type = deepcopy(prev_type)
@@ -203,13 +191,7 @@ class FSMAMSBlock:
                     node.block._relations[i] = VarAssign(node.block._relations[i].lhs, newrhs)
                     self._relations_dict[name] = node.block._relations[i]
                     
-                    
-                    print(node.block._relations[i])
-                    print(node.block._relations[i].pretty_print())
-                    print(node.block._relations[i].lhs.type)
-                    print(node.block._relations[i].rhs.type)
 
-                    print("bottom^")
 
                     """
                     if(rel.lhs.name == 'o' and name == 'precharge'):
@@ -223,7 +205,7 @@ class FSMAMSBlock:
                 elif isinstance(rel, Accumulate):
                     print(rel.lhs.type)
 
-                    newrhs = mult_type_match(scale_type_match(rel.rhs, rel.lhs.type), rel.lhs.type)
+                    newrhs = intlib.mult_type_match(scale_type_match(rel.rhs, rel.lhs.type), rel.lhs.type)
                     node.block._relations[i] = Accumulate(rel.lhs, newrhs)
                     print(node.block._relations[i].pretty_print())
                     self._change_relation_reference_datatypes(node.block._relations[i].rhs)
@@ -256,7 +238,7 @@ class FSMAMSBlock:
                     print(expr.type)
                     print(expr.lhs.type)
 
-                    expr.lhs = mult_type_match(scale_type_match(sign_type_match(expr.lhs, prev_type), prev_type), prev_type)
+                    expr.lhs = intlib.mult_type_match(intlib.scale_type_match(intlib.sign_type_match(expr.lhs, prev_type), prev_type), prev_type)
                     print(expr.pretty_print())
                     print(expr.type)
                     print(expr.lhs.type)
@@ -271,7 +253,7 @@ class FSMAMSBlock:
                     print(expr.type)
                     print(expr.rhs.type)
 
-                    expr.rhs = mult_type_match(scale_type_match(sign_type_match(expr.rhs, prev_type), prev_type), prev_type)
+                    expr.rhs = intlib.mult_type_match(intlib.scale_type_match(intlib.sign_type_match(expr.rhs, prev_type), prev_type), prev_type)
                     print(expr.pretty_print())
                     print(expr.type)
                     print(expr.rhs.type)
@@ -295,7 +277,7 @@ class FSMAMSBlock:
                     print(self._vars[expr.expr.name].type)
                       
 
-                    expr.expr = mult_type_match(scale_type_match(sign_type_match(expr.expr, prev_type), prev_type), prev_type)
+                    expr.expr = intlib.mult_type_match(intlib.scale_type_match(intlib.sign_type_match(expr.expr, prev_type), prev_type), prev_type)
                     print(expr.pretty_print())
                     print(expr.type)
                     print(expr.expr.type)
@@ -317,6 +299,11 @@ class FSMAMSBlock:
             return ( self.state_vars[cond.expr] > cond.range[0] ) and ( self.state_vars[cond.expr] <= cond.range[1])
         elif(isinstance(cond, AnalogTimeCondition)):
             return(self.evaluate_cycles * self.evaluate_dt >= cond.duration_var.variable.execute(self.state_vars))
+        elif(isinstance(cond, DigitalSignalCondition)):
+            if cond.inv:
+                return (self.state_vars[cond.expr] == 1)
+            else:
+                return ((self.state_vars[cond.expr] == 0))
         
     def setEvent(self, event):
         self.event_this_cycle = event
@@ -370,6 +357,12 @@ class AnalogTimeCondition:
     def __init__(self, duration_var): #If the time we are in a state exceeds duration_var, we transition
         assert isinstance(duration_var, VarInfo)
         self.duration_var = duration_var
+
+class DigitalSignalCondition:
+    def __init__(self, expr : str, inv = False):
+        assert isinstance(expr, str)
+        self.expr = expr
+        self.inv = inv
 
 """
 'evaluate_high' :         

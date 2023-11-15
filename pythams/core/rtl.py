@@ -195,6 +195,8 @@ class RTLBlock:
             fsm = FSM(self.m, 'fsm', self.inputs['eval_clk'], self.inputs['reset'])
             self.fsm = fsm
 
+            output_assignment_cond = {}
+
             for state_name, edges in self.block.edges.items():
 
 
@@ -220,16 +222,24 @@ class RTLBlock:
 
                                 self.wires[r.lhs.name].assign(self.traverse_expr_tree(r.rhs)[0])
                             elif r.lhs.name in self.outputs.keys():
-
-                                try:
-                                    
-                                    self.outputs[r.lhs.name].assign(self.traverse_expr_tree(r.rhs)[0])
-                                except:
-                                    pass
+                                
+                                if(not r.lhs.name in output_assignment_cond.keys() ):
+                                    output_assignment_cond[r.lhs.name] = [(state_name,self.traverse_expr_tree(r.rhs)[0])]
+                                else:
+                                    output_assignment_cond[r.lhs.name].append((state_name,self.traverse_expr_tree(r.rhs)[0]))
                 
                     state_defined.append(state_name)
 
                     fsm.goto_from(state_mapping[state_name], state_mapping[edge.dest_node.name], cond=self.extract_condition(edge.cond, state_mapping[state_name]))
+            
+            for wire_name, expressions_states in output_assignment_cond.items():
+                print(wire_name)
+                if(len(expressions_states) > 2):
+                    raise Exception("Unsupported")
+                if(len(expressions_states) == 1):
+                    self.outputs[wire_name].assign(expressions_states[1])
+                else: #Total kludge to work with two states. You will need to stack multiple muxes because veriloggen does not support large combinational blocks
+                    self.outputs[wire_name].assign(Mux(Eq(fsm.state,state_mapping[expressions_states[0][0]]),expressions_states[0][1],expressions_states[1][1]))
 
     def get_signal_reference(self, signal_name):
         if signal_name in self.wires.keys():
@@ -281,6 +291,18 @@ class RTLBlock:
             else:
                 ub = self.inputs[condition.range[1].name]
             return And((var > lb),(var <= ub))
+        
+        elif( isinstance(condition, DigitalSignalCondition)):
+            if(condition.expr in self.regs.keys()):
+                var = self.regs[condition.expr]
+            elif(condition.expr in self.wires.keys()):
+                var = self.wires[condition.expr]
+            else:
+                var = self.inputs[condition.expr]
+            if(condition.inv):
+                return Not(var)
+            else:
+                return var
                 
         else:
             print('[WARN] State transition condition may be unimplemented')

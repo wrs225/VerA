@@ -97,8 +97,8 @@ def build_interval_symtbl(block):
 def propagate_expr(reg, e,rel_prec):
     
     if isinstance(e, Constant) or isinstance(e, Param):
-        lb = e.value - (abs(e.value)*rel_prec)
-        ub = e.value + (abs(e.value)*rel_prec)
+        lb = e.value - (abs(e.value)*rel_prec + rel_prec)
+        ub = e.value + (abs(e.value)*rel_prec+ rel_prec)
         info = reg.decl_info(e.ident, lb, ub, abs(ub - lb)*rel_prec)
         e.type = RealType(lower=info.lower, upper=info.upper, prec=info.precision)
     else:
