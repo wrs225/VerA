@@ -234,8 +234,7 @@ class RTLBlock:
             
             for wire_name, expressions_states in output_assignment_cond.items():
                 print(wire_name)
-                if(len(expressions_states) > 2):
-                    raise Exception("Unsupported")
+
                 if(len(expressions_states) == 1):
                     self.outputs[wire_name].assign(expressions_states[1])
                 else: #Total kludge to work with two states. You will need to stack multiple muxes because veriloggen does not support large combinational blocks

@@ -123,7 +123,7 @@ class FSMAMSBlock:
                             shift = round(math.log2(stored_var.type.scale)) - round(math.log2(v.type.scale))
                             print(shift)
                             if(shift > 0):
-                                self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = intlib.IntType(nbits = stored_var.type.nbits + shift, scale = v.type.scale, signed = stored_var.type.signed or v.type.signed))
+                                self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = IntType(nbits = stored_var.type.nbits + shift, scale = v.type.scale, signed = stored_var.type.signed or v.type.signed))
                                 stored_var = self._vars[v.name]
                             else:
                                 raise Exception("This should never happen")
@@ -133,7 +133,7 @@ class FSMAMSBlock:
 
 
                         if(stored_var.type.nbits < v.type.nbits ):
-                            self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = intlib.IntType(nbits = v.type.nbits, scale = stored_var.type.scale, signed = stored_var.type.signed or v.type.signed))
+                            self._vars[v.name] = VarInfo(name=v.name, kind=v.kind, type = IntType(nbits = v.type.nbits, scale = stored_var.type.scale, signed = stored_var.type.signed or v.type.signed))
                         else:
                             print("datatypes match")
 
@@ -205,7 +205,7 @@ class FSMAMSBlock:
                 elif isinstance(rel, Accumulate):
                     print(rel.lhs.type)
 
-                    newrhs = intlib.mult_type_match(scale_type_match(rel.rhs, rel.lhs.type), rel.lhs.type)
+                    newrhs = mult_type_match(scale_type_match(rel.rhs, rel.lhs.type), rel.lhs.type)
                     node.block._relations[i] = Accumulate(rel.lhs, newrhs)
                     print(node.block._relations[i].pretty_print())
                     self._change_relation_reference_datatypes(node.block._relations[i].rhs)
@@ -238,7 +238,7 @@ class FSMAMSBlock:
                     print(expr.type)
                     print(expr.lhs.type)
 
-                    expr.lhs = intlib.mult_type_match(intlib.scale_type_match(intlib.sign_type_match(expr.lhs, prev_type), prev_type), prev_type)
+                    expr.lhs = mult_type_match(scale_type_match(sign_type_match(expr.lhs, prev_type), prev_type), prev_type)
                     print(expr.pretty_print())
                     print(expr.type)
                     print(expr.lhs.type)
@@ -253,7 +253,7 @@ class FSMAMSBlock:
                     print(expr.type)
                     print(expr.rhs.type)
 
-                    expr.rhs = intlib.mult_type_match(intlib.scale_type_match(intlib.sign_type_match(expr.rhs, prev_type), prev_type), prev_type)
+                    expr.rhs = mult_type_match(scale_type_match(sign_type_match(expr.rhs, prev_type), prev_type), prev_type)
                     print(expr.pretty_print())
                     print(expr.type)
                     print(expr.rhs.type)
@@ -277,7 +277,7 @@ class FSMAMSBlock:
                     print(self._vars[expr.expr.name].type)
                       
 
-                    expr.expr = intlib.mult_type_match(intlib.scale_type_match(intlib.sign_type_match(expr.expr, prev_type), prev_type), prev_type)
+                    expr.expr = mult_type_match(scale_type_match(sign_type_match(expr.expr, prev_type), prev_type), prev_type)
                     print(expr.pretty_print())
                     print(expr.type)
                     print(expr.expr.type)
