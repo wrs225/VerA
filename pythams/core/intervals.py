@@ -96,6 +96,7 @@ def build_interval_symtbl(block):
 
 def propagate_expr(reg, e,rel_prec):
     
+    print(e)
     if isinstance(e, Constant) or isinstance(e, Param):
         if(e.value != 0):
             lb = e.value - (abs(e.value)*rel_prec)
@@ -107,12 +108,19 @@ def propagate_expr(reg, e,rel_prec):
             ub = rel_prec/2
             info = reg.decl_info(e.ident, lb, ub, rel_prec)
             e.type = RealType(lower=info.lower, upper=info.upper, prec=info.precision)
-
+    elif isinstance(e, Mux):
+        comp = e.children()
+        propagate_expr(reg, comp[0], rel_prec)
+        propagate_expr(reg, comp[1], rel_prec)
+        propagate_expr(reg, comp[2], rel_prec)
+        
+        reg.decl_info(e.ident, min(comp[1].type.lower,comp[2].type.lower), max(comp[1].type.upper,comp[2].type.upper), min(comp[1].type.prec,comp[2].type.prec))
+        e.type = RealType(lower=min(comp[1].type.lower,comp[2].type.lower), upper=max(comp[1].type.upper,comp[2].type.upper), prec=min(comp[1].type.prec,comp[2].type.prec))
     else:
         expr = e.sympy
-
+        print("expr: {}".format(expr))
         vs = list(expr.free_symbols)
-        
+        print(vs)
         ival_args = list(map(lambda v: reg.get_info(v.name).interval_expr, vs))
         prec_args = list(map(lambda v: reg.get_info(v.name).precision_expr, vs))
 
@@ -121,8 +129,7 @@ def propagate_expr(reg, e,rel_prec):
         ival_expr = lambd(*ival_args)
         prec_expr = lambd(*prec_args)
 
-
-        #input()
+        print()
 
         info=reg.decl_sym_info(e.ident, interval_expr=ival_expr, precision_expr=prec_expr, relative_precision=rel_prec)
         e.type = RealType(lower=info.lower, upper=info.upper, prec=info.precision)

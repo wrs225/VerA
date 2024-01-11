@@ -256,9 +256,6 @@ class Constant(Expression):
 
 
 
-
-
-
 @dataclass
 class Sum(Expression):
     lhs: Expression
@@ -401,7 +398,38 @@ class Quotient(Expression):
         tc_result = self.type.typecast_value(result)
         self.type.typecheck_value(tc_result)
         return tc_result
+
+@dataclass
+class Mux(Expression):
+    cond: Expression #Should be a digital signal of some sort. 
+    lhs: Expression
+    rhs: Expression
+    type  = None
+    op_name : ClassVar[str]= "mux"
+
+    def children(self):
+        return [self.cond, self.lhs, self.rhs]
+
+    @property
+    def sympy(self) -> sym.Expr:
+        return sym.Piecewise((self.lhs.sympy, self.cond == 1), (self.rhs.sympy, True))
+
+    @property
+    def variables(self) -> "Set[Real]":
+        return self.cond.variables | self.lhs.variables | self.rhs.variables
     
+    def execute(self, args):
+        if(self.cond.execute(args) == 1):
+            result = self.lhs.execute(args)
+        else:
+            result = self.rhs.execute(args)
+        return result
+
+    def pretty_print(self):
+        return "({} ? {} : {})".format(self.cond.pretty_print(), self.lhs.pretty_print(), self.rhs.pretty_print())
+
+
+
 @dataclass 
 class Reciprocal(Expression):
     expr: Expression
