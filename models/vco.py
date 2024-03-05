@@ -1,9 +1,9 @@
-import pythams.core.block as blocklib
-from pythams.core.expr import *
-import pythams.core.intervals as intervallib
-import pythams.core.fixedpoint as fxplib
-import pythams.core.integer as intlib 
-import pythams.core.rtl as rtllib 
+import vera.core.block as blocklib
+from vera.core.expr import *
+import vera.core.intervals as intervallib
+import vera.core.fixedpoint as fxplib
+import vera.core.integer as intlib 
+import vera.core.rtl as rtllib 
 
 def generate_block(input_voltage = 3.3, rel_prec = 0.0000001, timestep = 1e-4):
     

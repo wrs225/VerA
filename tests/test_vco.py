@@ -1,9 +1,9 @@
-import pythams.core.block as blocklib
-from pythams.core.expr import *
-import pythams.core.intervals as intervallib
-import pythams.core.fixedpoint as fxplib
-import pythams.core.integer as intlib 
-import pythams.core.rtl as rtllib 
+import vera.core.block as blocklib
+from vera.core.expr import *
+import vera.core.intervals as intervallib
+import vera.core.fixedpoint as fxplib
+import vera.core.integer as intlib 
+import vera.core.rtl as rtllib 
 
 import matplotlib.pyplot as plt
 from pymtl3 import *
@@ -108,4 +108,4 @@ rtl_block = rtllib.RTLBlock(int_block, {'x':0.79, 'v':0.00})
 rtl_block.generate_verilog_src("./")
 rtl_block.generate_pymtl_wrapper()
 rtl_block.pymtl_sim_begin()
-validate_pymtl_model(rtl_block,timestep,"rtl_dynamics.png")
+validate_pymtl_model(rtl_block,1,"rtl_dynamics.png")
